@@ -19,3 +19,12 @@ pip install "imageio[ffmpeg]"
 ```
 python envs/cleanup-5a-game/test_cleanup_fullycooperative.py
 ```
+
+
+### Run train
+```
+cd experiments
+mkdir exp_name
+cd exp_name
+python ../../run.py --config-path /scratch/cluster/zhihan/LLM_for_diverse_policy/configs --config-name TrajeDi_cleanup_jsd_1
+```

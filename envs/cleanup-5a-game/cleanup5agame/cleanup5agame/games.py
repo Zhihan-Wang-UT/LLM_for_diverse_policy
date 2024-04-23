@@ -58,7 +58,7 @@ class CleanUpReducedActionGame(gym.Env):
         player_count = env_config.lab2d_settings.get('numPlayers', 1)
         player_prefixes = [f'{i+1}' for i in range(player_count)]
         
-        print(f'Running an episode with {player_count} players: {player_prefixes}.')
+        # print(f'Running an episode with {player_count} players: {player_prefixes}.')
         
         # self.max_episode_length = 10000
         # self.t = 0

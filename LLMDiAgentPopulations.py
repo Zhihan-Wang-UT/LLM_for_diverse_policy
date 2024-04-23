@@ -2,9 +2,8 @@ from MAPPOAgentPopulations import MAPPOAgentPopulations
 import torch
 from torch import optim, nn
 import torch.distributions as dist
-import wandb
 
-class TrajeDiAgentPopulations(MAPPOAgentPopulations):
+class LLMDiAgentPopulations(MAPPOAgentPopulations):
     """
         A class that implements a MAPPO-based TrajeDi implementation.
         It simply adds an additional trajectory diversity loss on top of MAPPO. 
@@ -86,7 +85,6 @@ class TrajeDiAgentPopulations(MAPPOAgentPopulations):
         # Averaged over time and batch
         jsd_loss = (final_term1 + final_term2).mean(dim=-1).mean()
 
-        wandb.log({"jsd_loss":jsd_loss})
         return jsd_loss
     
     def update(self, batches, xp_batches):

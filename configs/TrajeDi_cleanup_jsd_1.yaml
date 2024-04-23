@@ -10,7 +10,7 @@ logger:
   load_dir: ${name}
   log_grad: false
   project: DiversityGeneration
-  entity: gingerninja
+  entity: zhihan-wang
   logger_period: 0.1
   save_model: true
   save_model_period: 5
@@ -19,13 +19,13 @@ logger:
 env:
   name: cleanup-game-mini-reducedaction-v0
   parallel:
-    sp_collection: 160
+    sp_collection: 40
     xp_collection: 0
-    eval: 32
+    eval: 8
 
 run:
   use_cuda: false
-  num_timesteps: 16000000
+  num_timesteps: 20000000
   num_eval_episodes: 1
   seed: 1
   eval_seed: 500
@@ -39,7 +39,7 @@ populations:
 
 train:
   method: TrajeDi
-  timesteps_per_update: 50
+  timesteps_per_update: 8
   gamma: 0.99
   gamma_act_jsd: 0.4
   target_update_rate: 1e-3
@@ -54,7 +54,7 @@ loss_weights:
   sp_val_loss_weight: 1.0
   xp_loss_weights: 0.0 
   entropy_regularizer_loss: 0.001
-  jsd_weight: 0.0001
+  jsd_weight: 1
   
 model:
   actor_dims:
