@@ -84,61 +84,63 @@ def read_trajectory(filename):
 def embed_trajectory(model, traj):
     text = get_full_trajectory_text(traj)
     print("Length of Text: {}".format(len(text)))
-    return model.encode(text)
+    return model.encode([text])
 
 def init_model(model_type):
-    # model = LLM2Vec.from_pretrained(
-    #     model_type,
-    #     peft_model_name_or_path="McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp-supervised",
-    #     device_map="cuda" if torch.cuda.is_available() else "cpu",
-    #     torch_dtype=torch.float32,
-    # )
+    model = LLM2Vec.from_pretrained(
+        model_type,
+        peft_model_name_or_path="McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp-supervised",
+        # device_map="cuda" if torch.cuda.is_available() else "cpu",
+        torch_dtype=torch.bfloat16,
+        token=access_token
+    )
     
     # Loading base Mistral model, along with custom code that enables bidirectional connections in decoder-only LLMs. MNTP LoRA weights are merged into the base model.
-    with torch.no_grad():
-        tokenizer = AutoTokenizer.from_pretrained(
-            "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp",
-            token = access_token
-        )
-        config = AutoConfig.from_pretrained(
-            "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp", trust_remote_code=True,
-            token = access_token
-        )
-        model = AutoModel.from_pretrained(
-            "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp",
-            trust_remote_code=True,
-            config=config,
-            torch_dtype=torch.bfloat16,
-            token = access_token
-        )
-        model = PeftModel.from_pretrained(
-            model,
-            "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp",
-            token = access_token
-        )
-        model = model.merge_and_unload()  # This can take several minutes on cpu
+    # with torch.no_grad():
+    #     tokenizer = AutoTokenizer.from_pretrained(
+    #         "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp",
+    #         token = access_token
+    #     )
+    #     config = AutoConfig.from_pretrained(
+    #         "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp", trust_remote_code=True,
+    #         token = access_token
+    #     )
+    #     model = AutoModel.from_pretrained(
+    #         "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp",
+    #         trust_remote_code=True,
+    #         config=config,
+    #         torch_dtype=torch.bfloat16,
+    #         token = access_token
+    #     )
+    #     model = PeftModel.from_pretrained(
+    #         model,
+    #         "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp",
+    #         token = access_token
+    #     )
+    #     model = model.merge_and_unload()  # This can take several minutes on cpu
 
-        # # Loading supervised model. This loads the trained LoRA weights on top of MNTP model. Hence the final weights are -- Base model + MNTP (LoRA) + supervised (LoRA).
-        # model = PeftModel.from_pretrained(
-        #     model, "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp-supervised",
-        #     token = access_token
-        #)
+    #     # # Loading supervised model. This loads the trained LoRA weights on top of MNTP model. Hence the final weights are -- Base model + MNTP (LoRA) + supervised (LoRA).
+    #     # model = PeftModel.from_pretrained(
+    #     #     model, "McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp-supervised",
+    #     #     token = access_token
+    #     #)
 
     # Wrapper for encoding and pooling operations
-    l2v = LLM2Vec(model, tokenizer, pooling_mode="mean", max_length=512)
-    return l2v
+    # l2v = LLM2Vec(model, tokenizer, pooling_mode="mean", max_length=512)
+    # return l2v
+    return model
 
 model = init_model("McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp")
 traj00 = read_trajectory('Traj/optimal/0_0_trajectory.json')
 traj01 = read_trajectory('Traj/optimal/0_1_trajectory.json')
 traj10 = read_trajectory('Traj/optimal/1_0_trajectory.json')
 traj11 = read_trajectory('Traj/optimal/1_1_trajectory.json')
-
+print("Finished Reading Trajectory, now embedding")
 traj00_embedding = embed_trajectory(model, traj00)
-traj01_embedding = embed_trajectory(model, traj01)
-traj10_embedding = embed_trajectory(model, traj10)
-traj11_embedding = embed_trajectory(model, traj11)
+# traj01_embedding = embed_trajectory(model, traj01)
+# traj10_embedding = embed_trajectory(model, traj10)
+# traj11_embedding = embed_trajectory(model, traj11)
 
-matrix = torch.stack([traj00_embedding, traj01_embedding, traj10_embedding, traj11_embedding])
-similarity = matrix @ matrix.T
-print(similarity.cpu().numpy())
+# matrix = torch.stack([traj00_embedding, traj01_embedding, traj10_embedding, traj11_embedding])
+# similarity = matrix @ matrix.T
+# print(similarity.cpu().numpy())
