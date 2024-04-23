@@ -1,0 +1,70 @@
+defaults:
+  - hydra: hydra_simple
+  - _self_
+
+
+name: CookingZoo
+separate_controllers: false
+
+logger:
+  load_dir: ${name}
+  log_grad: false
+  project: DiversityGeneration
+  entity: zhihan-wang
+  logger_period: 0.1
+  save_model: true
+  save_model_period: 5
+
+# # Data collection-related parameters
+env:
+  name: cleanup-game-mini-reducedaction-v0
+  parallel:
+    sp_collection: 40
+    xp_collection: 0
+    eval: 8
+
+run:
+  use_cuda: false
+  num_timesteps: 20000000
+  num_eval_episodes: 1
+  seed: 1
+  eval_seed: 500
+  total_checkpoints: 50
+  load_from_checkpoint: -1
+  device_id: 2
+  cpus_per_task: 10
+
+populations:
+  num_populations: 2
+
+train:
+  method: TrajeDi
+  timesteps_per_update: 8
+  gamma: 0.99
+  gamma_act_jsd: 0.4
+  target_update_rate: 1e-3
+  lr: 1e-4
+  max_grad_norm: 1.0
+  epochs_per_update: 8
+  eps_clip: 0.2
+  dual_clip: 3.0
+  with_dual_clip: false
+
+loss_weights:
+  sp_val_loss_weight: 1.0
+  xp_loss_weights: 0.0 
+  entropy_regularizer_loss: 0.001
+  jsd_weight: 1
+  
+model:
+  actor_dims:
+    - 128
+    - 256
+    - 256
+    - 128
+  critic_dims:
+    - 128
+    - 256
+    - 256
+    - 128
+  init_ortho: false

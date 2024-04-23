@@ -1,0 +1,7 @@
+job:
+  chdir: true
+run:
+  dir: ./outputs
+sweep:
+  dir: ./outputs_sweep
+  subdir: ${run.seed}

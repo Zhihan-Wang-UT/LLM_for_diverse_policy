@@ -10,8 +10,8 @@ import numpy as np
 from ExpReplay import EpisodicExperienceReplay
 from MAPPOAgentPopulations import MAPPOAgentPopulations
 from TrajeDiAgentPopulations import TrajeDiAgentPopulations
-from LBRDivAgentPopulations import LBRDivAgentPopulations
-from BRDivAgentPopulations import BRDivAgentPopulations
+# from LBRDivAgentPopulations import LBRDivAgentPopulations
+# from BRDivAgentPopulations import BRDivAgentPopulations
 import os
 import wandb
 from omegaconf import OmegaConf
