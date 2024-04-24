@@ -46,7 +46,10 @@ def convert_orientation_to_text(orientation):
     
 def convert_transition_to_text(transition):
     actions = transition['action']
+
     observations = transition['observation'][0]
+    # print(observations)
+    # print(observations.shape)
     agent1_pos = observations[0:2]
     agent1_orientation = convert_orientation_to_text(observations[2:6])
     agent2_pos = observations[6:8]
@@ -81,7 +84,8 @@ def read_trajectory(filename):
         data = json.load(file)
     return data
 
-def embed_trajectory(model, traj):
+def embed_trajectory(model,
+                     traj):
     text = get_full_trajectory_text(traj)
     print("Length of Text: {}".format(len(text)))
     return model.encode([text])
@@ -130,13 +134,13 @@ def init_model(model_type):
     # return l2v
     return model
 
-model = init_model("McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp")
-traj00 = read_trajectory('Traj/optimal/0_0_trajectory.json')
-traj01 = read_trajectory('Traj/optimal/0_1_trajectory.json')
-traj10 = read_trajectory('Traj/optimal/1_0_trajectory.json')
-traj11 = read_trajectory('Traj/optimal/1_1_trajectory.json')
-print("Finished Reading Trajectory, now embedding")
-traj00_embedding = embed_trajectory(model, traj00)
+# model = init_model("McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp")
+# traj00 = read_trajectory('Traj/optimal/0_0_trajectory.json')
+# traj01 = read_trajectory('Traj/optimal/0_1_trajectory.json')
+# traj10 = read_trajectory('Traj/optimal/1_0_trajectory.json')
+# traj11 = read_trajectory('Traj/optimal/1_1_trajectory.json')
+# print("Finished Reading Trajectory, now embedding")
+# traj00_embedding = embed_trajectory(model, traj00)
 # traj01_embedding = embed_trajectory(model, traj01)
 # traj10_embedding = embed_trajectory(model, traj10)
 # traj11_embedding = embed_trajectory(model, traj11)
