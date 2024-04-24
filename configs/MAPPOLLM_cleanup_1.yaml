@@ -10,7 +10,7 @@ logger:
   load_dir: ${name}
   log_grad: false
   project: DiversityGeneration
-  entity: zhihan-wang
+  entity: harshg5799
   logger_period: 0.1
   save_model: true
   save_model_period: 5
@@ -19,7 +19,7 @@ logger:
 env:
   name: cleanup-game-mini-reducedaction-v0
   parallel:
-    sp_collection: 40
+    sp_collection: 20
     xp_collection: 0
     eval: 8
   ENV_DESCRIPTION : "Clean up is a public goods dilemma in which agents get a reward for consuming apples, but must use a cleaning beam to clean a river in order for apples to grow. While an agent is cleaning the river, other agents can exploit it by consuming the apples that appear."
@@ -37,11 +37,11 @@ run:
   cpus_per_task: 10
 
 populations:
-  num_populations: 2
+  num_populations: 1
 
 train:
-  method: TrajeDi
-  timesteps_per_update: 8
+  method: FCP
+  timesteps_per_update: 100
   gamma: 0.99
   gamma_act_jsd: 0.4
   target_update_rate: 1e-3
@@ -57,6 +57,8 @@ loss_weights:
   xp_loss_weights: 0.0 
   entropy_regularizer_loss: 0.001
   jsd_weight: 1
+
+exploration_reward_weight: 0.1
   
 model:
   actor_dims:
@@ -71,3 +73,6 @@ model:
     - 128
   init_ortho: false
 
+buffer:
+  type: LLMBuffer # Buffer or LLMBuffer
+  max_episodes: 10000
