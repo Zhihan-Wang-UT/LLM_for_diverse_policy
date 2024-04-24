@@ -14,6 +14,8 @@ pip install -e ./envs/cleanup-5a-game
 
 pip install imageio 
 pip install "imageio[ffmpeg]"
+pip install hydra-core
+pip install wandb
 ```
 ### Test environment
 ```

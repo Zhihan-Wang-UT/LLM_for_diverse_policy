@@ -2,6 +2,7 @@ from MAPPOAgentPopulations import MAPPOAgentPopulations
 import torch
 from torch import optim, nn
 import torch.distributions as dist
+from test_llmvec import init_model
 
 class LLMDiAgentPopulations(MAPPOAgentPopulations):
     """
@@ -10,7 +11,6 @@ class LLMDiAgentPopulations(MAPPOAgentPopulations):
     """
     def __init__(self, obs_size, num_agents, num_populations, configs, act_sizes, device, logger, mode="train"):
         super().__init__(obs_size, num_agents, num_populations, configs, act_sizes, device, logger, mode)
-
 
     def compute_jsd_loss(self, obs_batch, acts_batch):
         """
