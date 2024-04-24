@@ -8,6 +8,8 @@ import torch
 import string
 import numpy as np
 from ExpReplay import EpisodicExperienceReplay
+from LLMExpReplay import LLMEpisodicExperienceReplay
+
 from MAPPOAgentPopulations import MAPPOAgentPopulations
 from TrajeDiAgentPopulations import TrajeDiAgentPopulations
 # from LBRDivAgentPopulations import LBRDivAgentPopulations
@@ -401,6 +403,9 @@ class DiversityTraining(object):
 
         for r_obs, nr_obs, acts, rewards, dones in zip(stored_real_obs, stored_next_real_obs, stored_acts, stored_rewards, stored_dones):
             self.exp_replay.add_episode(r_obs, acts, rewards, dones, nr_obs)
+        
+        if isinstance(self.exp_replay, LLMEpisodicExperienceReplay):
+            self.exp_replay.embed_episodes()
 
     def cross_play_data_gathering(self, env, agent_population, tuple_obs_size, act_sizes_all):
         """
@@ -548,9 +553,14 @@ class DiversityTraining(object):
             num_obs_features, obs_sizes[0], self.config.populations["num_populations"], self.config, act_sizes, device, self.logger
         )
         
-        self.exp_replay = EpisodicExperienceReplay(
-            tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+        if self.config.buffer.type == 'LLMBuffer':
+            self.exp_replay = LLMEpisodicExperienceReplay(self.config,
+            tuple_obs_size, act_sizes_all, max_episodes=self.config.buffer.max_episodes, max_eps_length=self.config.train["timesteps_per_update"]
         )
+        else:
+            self.exp_replay = EpisodicExperienceReplay(
+                tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+            )
         self.cross_play_exp_replay = EpisodicExperienceReplay(
             tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["xp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
         )
@@ -598,15 +608,22 @@ class DiversityTraining(object):
                     batches_xp = None
 
                 agent_population.update(batches, batches_xp)
-                self.exp_replay = EpisodicExperienceReplay(
-                    tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
-                )
+                # self.exp_replay = EpisodicExperienceReplay(
+                #     tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+                # )
 
-                if self.config.env.parallel["xp_collection"] != 0:
-                    self.cross_play_exp_replay = EpisodicExperienceReplay(
-                        tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["xp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
-                    )
+                # if self.config.env.parallel["xp_collection"] != 0:
+                #     self.cross_play_exp_replay = EpisodicExperienceReplay(
+                #         tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["xp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+                #     )
+            # self.exp_replay = EpisodicExperienceReplay(
+            #         tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+            #     )
 
+            # if self.config.env.parallel["xp_collection"] != 0:
+            #     self.cross_play_exp_replay = EpisodicExperienceReplay(
+            #         tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["xp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+            #     )
             # Eval policy after sufficient number of episodes were collected.
             agent_population.save_model(ckpt_id+1, save_model=(self.logger.save_model
                                                                and ((ckpt_id+1) % self.logger.save_model_period == 0))
@@ -630,7 +647,7 @@ class Logger:
         # For metrics that are not saved every checkpoint,
         # this deterHow many update steps before one logs the value
         self.save_model_period = config.logger.get("save_model_period", 20)
-        if not "sp_collection" in config.env.parallel.keys() and not "xp_collection" in config.env.parallel.keys():
+        if "sp_collection" not in config.env.parallel.keys() and "xp_collection" not in config.env.parallel.keys():
             self.steps_per_update = (config.env.parallel.agent1_collection + config.env.parallel.agent2_collection) * config.train.timesteps_per_update
         else:
             self.steps_per_update = (config.env.parallel.sp_collection + config.env.parallel.xp_collection) * config.train.timesteps_per_update
