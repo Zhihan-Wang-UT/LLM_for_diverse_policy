@@ -1,3 +1,6 @@
 [submodule "envs/melting_pot_for_diversity"]
 	path = envs/melting_pot_for_diversity
 	url = git@github.com:Zhihan-Wang-UT/melting_pot_for_diversity.git
+[submodule "MAVEN"]
+	path = MAVEN
+	url = https://github.com/AnujMahajanOxf/MAVEN.git

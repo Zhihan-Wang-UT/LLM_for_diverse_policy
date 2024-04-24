@@ -48,6 +48,7 @@ class EpisodicExperienceReplay(object):
         """
         return self.size
 
+    
     def add_episode(self, obses, acts, rewards, dones, next_obses):
     #def add_episode(self, obses, acts, rewards, total_rew, eps_length, gamma):
         """
