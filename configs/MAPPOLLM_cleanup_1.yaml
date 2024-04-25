@@ -19,7 +19,7 @@ logger:
 env:
   name: cleanup-game-mini-reducedaction-v0
   parallel:
-    sp_collection: 20
+    sp_collection: 30
     xp_collection: 0
     eval: 8
   ENV_DESCRIPTION : "Clean up is a public goods dilemma in which agents get a reward for consuming apples, but must use a cleaning beam to clean a river in order for apples to grow. While an agent is cleaning the river, other agents can exploit it by consuming the apples that appear."
@@ -58,7 +58,7 @@ loss_weights:
   entropy_regularizer_loss: 0.001
   jsd_weight: 1
 
-exploration_reward_weight: 0.1
+exploration_reward_weight: -0.1
   
 model:
   actor_dims:
@@ -75,4 +75,4 @@ model:
 
 buffer:
   type: LLMBuffer # Buffer or LLMBuffer
-  max_episodes: 10000
+  max_episodes: 6000

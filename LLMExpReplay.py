@@ -31,6 +31,7 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
         self.llm_episode_embedding = np.zeros([max_episodes, 4096])
         self.llm_embed_model = init_model("McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp")
         self.old_pointer = 0
+        self.num_added_transitions = 0
     
     def add_episode(self, obses, acts, rewards, dones, next_obses):
     #def add_episode(self, obses, acts, rewards, total_rew, eps_length, gamma):
@@ -57,7 +58,6 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
         self.size = min(self.size + eps_length + self.max_eps_length, self.max_episodes * self.max_eps_length)
         self.num_episodes = min(self.num_episodes + 1, self.max_episodes)
         self.pointer = (self.pointer + 1) % self.max_episodes
-        
     
     def embed_transition(self, obs, act, reward):
         transition = dict()
@@ -68,6 +68,7 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
         return convert_transition_to_text(transition)
     
     def embed_episodes(self):
+        
         if self.old_pointer < self.pointer:
             obses = self.obs[self.old_pointer:self.pointer, :self.max_eps_length]
             acts = self.actions[self.old_pointer:self.pointer, :self.max_eps_length]
@@ -87,17 +88,18 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
         embeddings = self.llm_embed_model.encode(traj_text)
         embeddings = torch.nn.functional.normalize(embeddings, p=2, dim=1)
         embeddings = embeddings.cpu().numpy()
+        self.num_added_transitions = len(traj_text)
         
         if self.old_pointer < self.pointer:
             self.llm_episode_embedding[self.old_pointer: self.pointer, :] = embeddings
         else:
             
-            self.llm_episode_embedding[self.old_pointer: , :] = embeddings[:(self.max_episodes - self.pointer), :]
-            self.llm_episode_embedding[:self.pointer, :] = embeddings[(self.max_episodes - self.pointer):, :]
+            self.llm_episode_embedding[self.old_pointer: , :] = embeddings[:(self.max_episodes - self.old_pointer), :]
+            self.llm_episode_embedding[:self.pointer, :] = embeddings[(self.max_episodes - self.old_pointer):, :]
         
         self.augment_rewards()
         self.old_pointer = self.pointer
-        
+
     def augment_rewards(self):
         
         if self.old_pointer < self.pointer:
@@ -108,16 +110,17 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
             new_embeddings = self.llm_episode_embedding[self.old_pointer:, :]
             new_embeddings = np.concatenate([new_embeddings, self.llm_episode_embedding[:self.pointer,:]], axis = 0)
 
-        print(prev_embeddings.shape)
-        print(new_embeddings.shape)
+        # print(prev_embeddings.shape)
+        # print(new_embeddings.shape)
         if len(prev_embeddings) != 0:
             cosine_similarity = prev_embeddings @ new_embeddings.T
-            exploration_rewards = cosine_similarity.mean(dim = 0)
+            exploration_rewards = cosine_similarity.mean(axis = 0)
+            exploration_rewards = exploration_rewards.reshape((exploration_rewards.shape[0],1,1))
             if self.old_pointer < self.pointer:
                 self.rewards[self.old_pointer:self.pointer] += self.config.exploration_reward_weight*exploration_rewards
             else:
-                self.rewards[self.old_pointer:] +=  self.config.exploration_reward_weight*exploration_rewards[:(self.max_episodes - self.old_pointer),:]
-                self.rewards[:self.pointer] +=  self.config.exploration_reward_weight*exploration_rewards[(self.max_episodes - self.old_pointer):, :]
+                self.rewards[self.old_pointer:] +=  self.config.exploration_reward_weight*exploration_rewards[:(self.max_episodes - self.old_pointer)]
+                self.rewards[:self.pointer] +=  self.config.exploration_reward_weight*exploration_rewards[(self.max_episodes - self.old_pointer):]
         
         
     def sample_all(self):
@@ -125,28 +128,33 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
             A method to return everything stored in the buffer.
             :return: Everything contained in buffer.
         """
-        if self.old_pointer < self.pointer:
-            obses = self.obs[self.old_pointer:self.pointer, :self.max_eps_length]
-            acts = self.actions[self.old_pointer:self.pointer, :self.max_eps_length]
-            rewards = self.rewards[self.old_pointer:self.pointer, :self.max_eps_length]
-            next_obs = self.next_obs[self.old_pointer:self.pointer, :self.max_eps_length]
-            dones = self.dones[self.old_pointer:self.pointer, :self.max_eps_length]
+        
+        start = self.pointer - self.num_added_transitions
+        if start < 0:
+            start += self.max_episodes
+            
+        if start < self.pointer:
+            obses = self.obs[start:self.pointer, :self.max_eps_length]
+            acts = self.actions[start:self.pointer, :self.max_eps_length]
+            rewards = self.rewards[start:self.pointer, :self.max_eps_length]
+            next_obs = self.next_obs[start:self.pointer, :self.max_eps_length]
+            dones = self.dones[start:self.pointer, :self.max_eps_length]
             
         else:
-            obses = self.obs[self.old_pointer:, :self.max_eps_length]
+            obses = self.obs[start:, :self.max_eps_length]
             
-            acts = self.actions[self.old_pointer:, :self.max_eps_length]
-            rewards = self.rewards[self.old_pointer:, :self.max_eps_length]
-            next_obs = self.next_obs[self.old_pointer:, :self.max_eps_length]
-            dones = self.dones[self.old_pointer, :self.max_eps_length]
+            acts = self.actions[start:, :self.max_eps_length]
+            rewards = self.rewards[start:, :self.max_eps_length]
+            next_obs = self.next_obs[start:, :self.max_eps_length]
+            dones = self.dones[start:, :self.max_eps_length]
             
             obses = np.concatenate([obses, self.obs[:self.pointer, :self.max_eps_length]], axis=0)
             acts = np.concatenate([acts, self.actions[:self.pointer, :self.max_eps_length]],axis=0)
             rewards = np.concatenate([rewards, self.rewards[:self.pointer, :self.max_eps_length]],axis=0)
             next_obs = np.concatenate([next_obs, self.next_obs[:self.pointer:, :self.max_eps_length]],axis=0)
-            dones = self.dones[self.old_pointer, :self.max_eps_length]
+            dones = np.concatenate([dones, self.dones[:self.pointer, :self.max_eps_length]], axis = 0)
             
-        return obses, acts, rewards, next_obs, dones
+        return obses, acts, next_obs, dones, rewards
     
     def convert_traj_to_text(self, obses, acts, rewards):
         text = ""
