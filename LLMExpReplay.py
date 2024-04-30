@@ -117,10 +117,10 @@ class LLMEpisodicExperienceReplay(EpisodicExperienceReplay):
             exploration_rewards = cosine_similarity.mean(axis = 0)
             exploration_rewards = exploration_rewards.reshape((exploration_rewards.shape[0],1,1))
             if self.old_pointer < self.pointer:
-                self.rewards[self.old_pointer:self.pointer] += self.config.exploration_reward_weight*exploration_rewards
+                self.rewards[self.old_pointer:self.pointer] += self.config.exploration_reward_weight*(1-exploration_rewards)
             else:
-                self.rewards[self.old_pointer:] +=  self.config.exploration_reward_weight*exploration_rewards[:(self.max_episodes - self.old_pointer)]
-                self.rewards[:self.pointer] +=  self.config.exploration_reward_weight*exploration_rewards[(self.max_episodes - self.old_pointer):]
+                self.rewards[self.old_pointer:] +=  self.config.exploration_reward_weight*(1 -exploration_rewards[:(self.max_episodes - self.old_pointer)])
+                self.rewards[:self.pointer] +=  self.config.exploration_reward_weight*(1 - exploration_rewards[(self.max_episodes - self.old_pointer):])
         
         
     def sample_all(self):

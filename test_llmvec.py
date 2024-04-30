@@ -94,7 +94,7 @@ def init_model(model_type):
     model = LLM2Vec.from_pretrained(
         model_type,
         peft_model_name_or_path="McGill-NLP/LLM2Vec-Mistral-7B-Instruct-v2-mntp-supervised",
-        # device_map="cuda" if torch.cuda.is_available() else "cpu",
+        device_map="cuda" if torch.cuda.is_available() else "cpu",
         torch_dtype=torch.bfloat16,
         token=access_token
     )

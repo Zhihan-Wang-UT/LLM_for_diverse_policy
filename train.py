@@ -126,6 +126,8 @@ class DiversityTraining(object):
             per_worker_non_disc_rew1 = [0.0] * self.config.env.parallel["eval"]
             # Log per thread agent 2 undiscounted returns
             per_worker_non_disc_rew2 = [0.0] * self.config.env.parallel["eval"]
+            
+            # Lo
 
             # Initialize initial obs and states for model
             obs, _ = env_train.reset(seed=[self.config.run["eval_seed"] + idx for idx in range(self.config.env.parallel["eval"])])
@@ -152,6 +154,7 @@ class DiversityTraining(object):
                 # Log per thread returns
                 per_worker_rew1 = [k + (self.config.train["gamma"]**(te[0][0]-1))*l[0] for k, te, l in zip(per_worker_rew1, time_elapsed, rews)]
                 per_worker_rew2 = [k + (self.config.train["gamma"]**(te[0][0]-1))*l[1] for k, te, l in zip(per_worker_rew2, time_elapsed, rews)]
+                
                 # Log per thread discounted returns
                 per_worker_non_disc_rew1 = [k + l[0] for k, l in zip(per_worker_non_disc_rew1, rews)]
                 per_worker_non_disc_rew2 = [k + l[1] for k, l in zip(per_worker_non_disc_rew2, rews)]
@@ -608,9 +611,11 @@ class DiversityTraining(object):
                     batches_xp = None
 
                 agent_population.update(batches, batches_xp)
-                # self.exp_replay = EpisodicExperienceReplay(
-                #     tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
-                # )
+                if self.config.buffer.type == 'Buffer':
+                    
+                    self.exp_replay = EpisodicExperienceReplay(
+                        tuple_obs_size, act_sizes_all, max_episodes=self.config.env.parallel["sp_collection"], max_eps_length=self.config.train["timesteps_per_update"]
+                    )
 
                 # if self.config.env.parallel["xp_collection"] != 0:
                 #     self.cross_play_exp_replay = EpisodicExperienceReplay(
@@ -630,10 +635,10 @@ class DiversityTraining(object):
                                        )
             # Compute self-play and cross-play matrix. Save and add them to logs in logger.
             sp_mat = self.eval_sp_policy_performance(agent_population, self.logger, ckpt_id+1)
-            xp_mat = self.eval_xp_policy_performance(agent_population, self.logger, ckpt_id+1)
-            self.logger.log_xp_matrix("Returns/xp_matrix0", sp_mat[:,:,0] + xp_mat[:,:,0], checkpoint=ckpt_id+1)
-            self.logger.log_xp_matrix("Returns/xp_matrix1", sp_mat[:,:,1] + xp_mat[:,:,1], checkpoint=ckpt_id+1)
-            self.logger.commit()
+            #xp_mat = self.eval_xp_policy_performance(agent_population, self.logger, ckpt_id+1)
+            # self.logger.log_xp_matrix("Returns/xp_matrix0", sp_mat[:,:,0] + xp_mat[:,:,0], checkpoint=ckpt_id+1)
+            # self.logger.log_xp_matrix("Returns/xp_matrix1", sp_mat[:,:,1] + xp_mat[:,:,1], checkpoint=ckpt_id+1)
+            #self.logger.commit()
         return actual_div_loss
 
 class Logger:

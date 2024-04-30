@@ -3,7 +3,7 @@ import torch
 from train import DiversityTraining
 
 @hydra.main(version_base=None, config_path="configs", config_name="default")
-def run(cfg):
+def run_experiment(cfg):
     #args = vars(args)
     hydra_cfg = hydra.core.hydra_config.HydraConfig.get()
     torch.set_num_threads(hydra_cfg.launcher.get("cpus_per_task", 4))
@@ -13,4 +13,4 @@ def run(cfg):
 
 
 if __name__ == '__main__':
-    run()
+    run_experiment()

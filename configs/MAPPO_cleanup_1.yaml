@@ -29,7 +29,7 @@ run:
   use_cuda: false
   num_timesteps: 10000000
   num_eval_episodes: 1
-  seed: 1
+  seed: 4
   eval_seed: 500
   total_checkpoints: 1000
   load_from_checkpoint: -1
@@ -58,7 +58,7 @@ loss_weights:
   entropy_regularizer_loss: 0.001
   jsd_weight: 1
 
-exploration_reward_weight: 0.1
+exploration_reward_weight: -0.0
   
 model:
   actor_dims:
@@ -74,5 +74,5 @@ model:
   init_ortho: false
 
 buffer:
-  type: LLMBuffer # Buffer or LLMBuffer
+  type: Buffer # Buffer or LLMBuffer
   max_episodes: 10000
