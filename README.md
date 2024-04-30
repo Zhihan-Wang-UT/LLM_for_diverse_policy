@@ -16,6 +16,7 @@ pip install imageio
 pip install "imageio[ffmpeg]"
 pip install hydra-core
 pip install wandb
+pip install matplotlib
 ```
 ### Test environment
 ```
