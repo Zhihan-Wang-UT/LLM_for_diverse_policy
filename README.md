@@ -29,5 +29,16 @@ python envs/cleanup-5a-game/test_cleanup_fullycooperative.py
 cd experiments
 mkdir exp_name
 cd exp_name
-python ../../run.py --config-path /scratch/cluster/zhihan/LLM_for_diverse_policy/configs --config-name TrajeDi_cleanup_jsd_1
+```
+
+Baseline MAPPO Sample comman
+```
+CUDA_VISIBLE_DEVICES=-1 PYTHONPATH=/home/hg22723/projects/LLM_for_diverse_policy/experiments/nollmmappo python ../../run.py --config-path /home/hg22723/projects/LLM_for_diverse_policy/configs --config-name MAPPO_cleanup_1
+
+```
+
+MAPPO with LLM2Vec based exploration (required 40 GB VRAM)
+```
+CUDA_VISIBLE_DEVICES=0,1,2 PYTHONPATH=/home/hg22723/projects/LLM_for_diverse_policy/experiments/llmmappo python ../../run.py --config-path /home/hg22723/projects/LLM_for_diverse_policy/configs --config-name MAPPOLLM_cleanup_1
+
 ```
